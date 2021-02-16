@@ -7,9 +7,11 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class TodoListViewController: SwipeTableViewController {
     
+    @IBOutlet weak var searchBar: UISearchBar!
     var todoItems: Results<Item>?
     let realm = try! Realm()
     var selectedCategory : Category? {
@@ -19,6 +21,18 @@ class TodoListViewController: SwipeTableViewController {
     }
     override func viewDidLoad() {
         super.viewDidLoad()
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        if let color = UIColor(hexString: selectedCategory!.color) {
+            title = selectedCategory!.name
+            guard let navBar = navigationController?.navigationBar else {fatalError("NavigationBar does not exist")}
+            navBar.backgroundColor = color
+            searchBar.barTintColor = color
+            navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(color, returnFlat: true)]
+            navBar.tintColor = ContrastColorOf(color, returnFlat: true)
+        } else {
+            print("Error")
+        }
     }
     
     // MARK: - TableView DataSource
@@ -32,6 +46,12 @@ class TodoListViewController: SwipeTableViewController {
             // Ternary operator
             // value = condition ? valueIfTrue: valueIfFalse
             cell.accessoryType = item.done ? .checkmark: .none
+            
+            if let color = UIColor(hexString: selectedCategory!.color)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoItems!.count)) {
+                cell.backgroundColor = color
+                cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+            }
+            
         } else {
             cell.textLabel?.text = "No items added yet"
         }
